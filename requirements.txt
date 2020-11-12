@@ -1,8 +1,10 @@
 certifi==2020.11.8
 chardet==3.0.4
 click==7.1.2
+cupy==8.1.0
 dataclasses==0.6
 faiss-gpu==1.6.4.post2
+fastrlock==0.5
 filelock==3.0.12
 future==0.18.2
 idna==2.10

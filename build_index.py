@@ -1,43 +1,32 @@
 import os
 import pickle
 import faiss
-from nltk.tokenize import word_tokenize
-from sentence_transformers import SentenceTransformer
 import numpy as np
 
 VECTOR_DIR = "vectors"
-k = 3
-VECTOR_DIMENSION = 768
-index = faiss.IndexFlatIP(VECTOR_DIMENSION)
-SENTENCE_TRANSFORMER = SentenceTransformer('bert-base-nli-mean-tokens')
-current_id = 0
-id_map = dict()
+VECTOR_DIMENSION = 512
+index = faiss.IndexFlatL2(VECTOR_DIMENSION)
+id_map = list()
 
 
-def build_index(file_name):
-    global current_id, index
+def add_vectors(file_name, f):
+    global index
     vectors = pickle.load(open(file_name, "rb"))
-    doc_id = file_name.split(".")[0]
+    doc_id = f.split(".")
     for vector in vectors:
-        index.add(np.array([vector]))
-        id_map[current_id] = doc_id
-        current_id += 1
+        numpy_vector = np.array([vector.numpy()])
+        index.add(numpy_vector)
+        id_map.append(doc_id)
 
 
-def get_embedding(text):
-    tokenized_query = list()
-    tokenized_query.append(word_tokenize(text))
-    return SENTENCE_TRANSFORMER.encode(tokenized_query)[0]
+def save_vectors():
+    global index, id_map
+    faiss.write_index(index, "index/faiss.index")
+    pickle.dump(id_map, open("index/map.p", "wb"))
 
 
-for i, file in enumerate(os.listdir(VECTOR_DIR)):
+for file in os.listdir(VECTOR_DIR):
     file_path = os.path.join(VECTOR_DIR, file)
-    build_index(file_path)
+    add_vectors(file_path, file)
 
-while True:
-    query = input("Find Closest Document: ")
-    query_vector = get_embedding(query)
-    result = (index.search(np.array([query_vector]), k))
-    for val in result[1]:
-        for test in val:
-            print("{} maps to {}".format(test, id_map[test]))
+save_vectors()
