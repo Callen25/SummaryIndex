@@ -1,6 +1,6 @@
 /data
-.python-version
-/vectors
-.idea
-/index
 /eval
+/index
+/vector*
+.python-version
+.idea
