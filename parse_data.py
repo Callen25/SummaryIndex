@@ -15,6 +15,11 @@ def cosine_similarity(a, b):
     return np.dot(a, b)/(norm(a)*norm(b))
 
 
+def euclidean_distance(a, b):
+    distance = norm(a - b)
+    return 1 / (1 + distance)
+
+
 def index_document(document):
     doc_root = ElementTree.parse(document).getroot()[0]
 
