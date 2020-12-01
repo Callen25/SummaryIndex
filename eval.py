@@ -3,10 +3,12 @@ import pickle
 import numpy as np
 import tensorflow_hub as hub
 
+MAX_DIST = 1.5674068
+
 index = None
 id_map = None
 thresholds = [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
-distance_ranges = [1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]
+distance_ranges = [1.990, 1.991, 1.992, 1.993, 1.994, 1.995, 1.996, 1.997, 1.198, 1.199, 1.200, 1.201, 1.202, 1.203, 1.204, 1.205, 1.206, 1.207, 1.208, 1.209, 1.210]
 sentence_model = hub.load("https://tfhub.dev/google/universal-sentence-encoder/4")
 query_file = open("eval/queries.txt", "r")
 ir_model = "DSF"
@@ -17,12 +19,11 @@ def get_embedding(text):
 
 
 # For each distance in a list of euclidean distances,
-# Generates a score from euclidean distance using the following formula:
-# Score = 1 / (1 + distance)
+# Generates a normalized score from the euclidean distance
 def distance_to_score(distances):
     scores = []
     for distance in distances:
-        score = 1 / (1 + distance)
+        score = 1 - (distance / MAX_DIST)
         scores.append(score)
     return scores
 
@@ -50,9 +51,18 @@ def group_by_docid(doc_ids, scores):
 
 
 def aggregate_scores(doc_id_scores):
+    doc_ids = []
+    scores = []
     for doc_id in doc_id_scores:
         doc_id_scores[doc_id] = get_aggregate_score(doc_id_scores[doc_id])
-    return list(doc_id_scores.keys()), list(doc_id_scores.values())
+
+    results = [(k, v) for k, v in doc_id_scores.items()]
+    results.sort(key=lambda x: x[1], reverse=True)
+
+    if results is not None:
+        doc_ids = [i[0] for i in results]
+        scores = [i[1] for i in results]
+    return doc_ids, scores
 
 
 def get_aggregate_score(score_list):

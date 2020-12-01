@@ -7,17 +7,16 @@ from cupy.linalg import norm
 import pickle
 
 SIM_THRESHOLD = 0.0
+MAX_DIST = 1.5674068
+thresholds = [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
+
 DATA_DIR = "data"
 sentence_model = hub.load("https://tfhub.dev/google/universal-sentence-encoder/4")
 
 
-def cosine_similarity(a, b):
-    return np.dot(a, b)/(norm(a)*norm(b))
-
-
-def euclidean_distance(a, b):
+def euclidean_similarity(a, b):
     distance = norm(a - b)
-    return 1 / (1 + distance)
+    return 1 - (distance / MAX_DIST)
 
 
 def index_document(document):
@@ -56,7 +55,7 @@ def get_relevant_vectors(headline, document_vectors):
     # Add a sentence to relevant_vectors if it meets the similarity threshold to headline
     for sentence in document_vectors:
         vector = np.array(sentence.numpy())
-        if cosine_similarity(headline, vector) > SIM_THRESHOLD:
+        if euclidean_similarity(headline, vector) > SIM_THRESHOLD:
             relevant_vectors.append(vector)
 
     return relevant_vectors
@@ -67,9 +66,11 @@ def tokenize_sentences(text):
     return sentences
 
 
-# Index each document in the data directory
-for i, file in enumerate(os.listdir(DATA_DIR)):
-    if i % 1000 == 0:
-        print(f"Parsed {i} documents")
-    file_path = os.path.join(DATA_DIR, file)
-    index_document(file_path)
+for threshold in thresholds:
+    SIM_THRESHOLD = threshold
+    # Index each document in the data directory
+    for i, file in enumerate(os.listdir(DATA_DIR)):
+        if i % 1000 == 0:
+            print(f"Parsed {i} documents")
+        file_path = os.path.join(DATA_DIR, file)
+        index_document(file_path)

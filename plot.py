@@ -19,7 +19,8 @@ def get_precision(file):
         category = split[0]
         domain = split[1]
         if domain == "all" and category == "P_5":
-            return float(split[2])
+            precision = float(split[2])
+            return precision
 
 
 def main():
@@ -29,21 +30,22 @@ def main():
         frange = float(file_parts[1])
         threshold = float(file_parts[3].split(".txt")[0])
         precision = get_precision(file)
+        if precision is None:
+            precision = 0.0
 
         X.append(threshold)
         Y.append(frange)
         Z.append(precision)
 
     max_precision = 0.0
-    optimal_thresh = 0.0
-    optimal_range = 0.0
-    for i in range(len(Z)):
-        if Z[i] >= max_precision:
-            max_precision = Z[i]
-            optimal_thresh = X[i]
-            optimal_range = Y[i]
 
-    print(f"Max Precision: {max_precision}, occurs at Threshold: {optimal_thresh}, and Range: {optimal_range}")
+    for i in range(len(Z)):
+        if Z[i] > max_precision:
+            max_precision = Z[i]
+
+    for i in range(len(Z)):
+        if Z[i] == max_precision:
+            print(f"Max Precision: {max_precision}, Occurs at threshold: {X[i]}, Range: {Y[i]}")
 
     # Format data for matplotlib
     X = np.array(X)
