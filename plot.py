@@ -18,7 +18,7 @@ def get_precision(file):
         split = line.split()
         category = split[0]
         domain = split[1]
-        if domain == "all" and category == "P_5":
+        if domain == "all" and category == "map":
             precision = float(split[2])
             return precision
 
